@@ -2,10 +2,8 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import GUI from "lil-gui";
 import gsap from "gsap";
-import t0 from "../img/1.jpg";
-import t1 from "../img/2.jpg";
-import t2 from "../img/3.jpg";
 import maskURL from "../img/mask.jpg";
+import assets from "./assets";
 
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
@@ -42,7 +40,7 @@ export default class Sketch {
     this.event = createInputEvents(this.renderer.domElement);
 
     this.camera.position.set(0, 0, 900);
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
     this.time = 0;
 
@@ -50,16 +48,24 @@ export default class Sketch {
     this.mouseTarget = new THREE.Vector2();
 
     this.isPlaying = true;
-    this.initPost();
+    this.setPostProcess();
     this.setObjects();
     this.resize();
     this.render();
     this.setupResize();
     this.events();
-    this.settings();
+    // this.settings();
+    this.imageIndex = 0;
+
+    setInterval(() => {
+      this.imageIndex = this.imageIndex % 15;
+      // 6 is equal to assets.length
+      this.imageIndex = this.imageIndex + 1 === 6 ? 0 : ++this.imageIndex;
+      this.runAnimation();
+    }, 5000);
   }
 
-  initPost() {
+  setPostProcess() {
     this.composer = new EffectComposer(this.renderer);
 
     const renderPass = new RenderPass(this.scene, this.camera);
@@ -98,11 +104,12 @@ export default class Sketch {
   }
 
   runAnimation() {
+    console.log(this.imageIndex);
     let tl = gsap.timeline();
 
     // camera position
     tl.to(this.camera.position, {
-      x: 2500,
+      x: 2500 * this.imageIndex,
       duration: 1.5,
       ease: "power4.inOut",
     });
@@ -181,9 +188,11 @@ export default class Sketch {
   setObjects() {
     this.geometry = new THREE.PlaneGeometry(1920, 1080, 1, 1);
 
-    this.textures = [t0, t1, t2];
+    this.textures = assets;
     this.maskTexture = new THREE.TextureLoader().load(maskURL);
-    this.textures = this.textures.map((t) => new THREE.TextureLoader().load(t));
+    this.textures = this.textures.map((t) =>
+      new THREE.TextureLoader().load(t.image)
+    );
     // console.log(this.textures);
 
     this.groups = [];
